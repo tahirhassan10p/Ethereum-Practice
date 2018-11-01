@@ -101,14 +101,14 @@ contract BloodChain {
     function addBloodBank(string name, string contactPerson, string contactNumber,string location) public {
         
         BloodBank memory newBloodBank = BloodBank({
-            name: name,
-            contactNumber: contactNumber,
-            contactPerson: contactPerson,
-            location: location,
-            status: 2,// 2 = pending on registration status should be pending
-            ethAddress: msg.sender,
-            createdDate: now,
-            approvalDate: 0//not defined
+            name :name,
+            contactNumber:contactNumber,
+            contactPerson:contactPerson,
+            location:location,
+            status:2,// 2 = pending on registration status should be pending
+            ethAddress:msg.sender,
+            createdDate:now,
+            approvalDate:0//not defined
         });
         bloodBanks.push(newBloodBank);
     }
@@ -139,19 +139,101 @@ contract BloodChain {
         bloodRequests.push(newBloodRequest);
     }
     
-    function getUser(address userId) view returns(string) {
-        for(uint i=0;i<donors.length;i++) {
-            if(donors[i].ethAddress == userId) {
+    function getUser(address userId) view returns(string){
+        for(uint i=0;i<donors.length;i++){
+            if(donors[i].ethAddress == userId){
                 return "donor";
             }
         }
         
-        for(i=0;i<bloodBanks.length;i++) {
-            if(bloodBanks[i].ethAddress == userId) {
-                return "bloodBank";
+        for(i=0;i<bloodBanks.length;i++){
+            if(bloodBanks[i].ethAddress == userId){
+                return "bloodBanks";
             }
         }
         
         return "";
+    }
+    
+    function getAllBloodBanks() public view returns(string) {
+        string memory bloodBankStr = "[";
+        
+        for(uint i=0; i < bloodBanks.length;i++){
+            bloodBankStr = concat(bloodBankStr, convertBloodBankToJson(bloodBanks[i]));
+            if (i<bloodBanks.length - 1) {
+                bloodBankStr = concat(bloodBankStr,",");
+            }
+        }
+        
+        return concat(bloodBankStr,"]");
+    }
+    
+    function convertBloodBankToJson(BloodBank bloodBank) internal returns (string){
+        string memory bloodBankStr = "{";
+        
+    	bloodBankStr = concat(bloodBankStr,"\"ethAddress\": \"");concat(bloodBankStr,addressToString(bloodBank.ethAddress));concat(bloodBankStr,"\",");
+        bloodBankStr = concat(bloodBankStr,"\"name\": \"");concat(bloodBankStr,bloodBank.name);concat(bloodBankStr,"\",");
+    	bloodBankStr = concat(bloodBankStr,"\"contactPerson\": \"");concat(bloodBankStr,bloodBank.contactPerson);concat(bloodBankStr,"\",");
+    	bloodBankStr = concat(bloodBankStr,"\"contactNumber\": \"");concat(bloodBankStr,bloodBank.contactNumber);concat(bloodBankStr,"\",");
+    	bloodBankStr = concat(bloodBankStr,"\"location\": \"");concat(bloodBankStr,bloodBank.location);concat(bloodBankStr,"\",");
+    	bloodBankStr = concat(bloodBankStr,"\"createdDate\": ");concat(bloodBankStr,uintToString(bloodBank.createdDate));concat(bloodBankStr,",");
+    	bloodBankStr = concat(bloodBankStr,"\"approvalDate\": ");concat(bloodBankStr,uintToString(bloodBank.approvalDate));concat(bloodBankStr,",");
+    	bloodBankStr = concat(bloodBankStr,"\"status\": ");concat(bloodBankStr,uintToString(bloodBank.status));
+        
+        bloodBankStr = concat(bloodBankStr,"}");
+        return bloodBankStr;
+    }
+    
+    function concat(string _base, string _value) internal returns (string) {
+        bytes memory _baseBytes = bytes(_base);
+        bytes memory _valueBytes = bytes(_value);
+
+        string memory _tmpValue = new string(_baseBytes.length + _valueBytes.length);
+        bytes memory _newValue = bytes(_tmpValue);
+
+        uint i;
+        uint j;
+
+        for(i=0; i<_baseBytes.length; i++) {
+            _newValue[j++] = _baseBytes[i];
+        }
+
+        for(i=0; i<_valueBytes.length; i++) {
+            _newValue[j++] = _valueBytes[i++];
+        }
+
+        return string(_newValue);
+    }
+    
+    function addressToString(address x) private returns (string) {
+        bytes memory b = new bytes(20);
+        for (uint i = 0; i < 20; i++) {
+            b[i] = byte(uint8(uint(x) / (2**(8*(19 - i)))));
+        }
+        return string(b);
+    }
+    
+    function uintToString(uint i) internal returns (string) {
+        if (i == 0) 
+        {
+            return "0";
+        }
+        uint j = i;
+        uint length;
+        
+        while (j != 0) 
+        {
+            length++;
+            j /= 10;
+        }
+        
+        bytes memory bstr = new bytes(length);
+        uint k = length - 1;
+        while (i != 0) {
+            bstr[k--] = byte(48 + i % 10);
+            i /= 10;
+        }
+
+        return string(bstr);
     }
 }
